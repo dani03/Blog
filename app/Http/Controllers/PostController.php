@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\storeRequest;
+use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use PhpParser\Node\Expr\AssignOp\Pow;
 
 class PostController extends Controller
 {
@@ -14,7 +17,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::with('category', 'user')->get();
+        $posts = Post::with('category', 'user')->latest()->get();
         return view('posts.index', compact('posts'));
     }
 
@@ -25,7 +28,8 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+        return view("posts.create", compact('categories'));
     }
 
     /**
@@ -34,9 +38,17 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(storeRequest $request)
     {
-        //
+        $imageName = $request->image->store("posts/");
+        // dd($imageName);
+        Post::create([
+            'title' => $request->title,
+            'content' => $request->content,
+            'image' => $imageName,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'votre post à été crée');
     }
 
     /**
@@ -47,7 +59,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        return view('posts.show', compact('post'));
     }
 
     /**
